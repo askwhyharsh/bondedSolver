@@ -1,6 +1,10 @@
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+// bonded solver has vaults onchain where users can deposit funds, swap using rfq on cowswap
+//  1. vaults — create vault, vault is created between a token pair and a yield bearing token or an nft is issued against it
+//  1. swap — function to swap 2 tokens based on signed price sent by the solver
+//  2. fee collector — fee from swaps are stored here
 
 Foundry consists of:
 
