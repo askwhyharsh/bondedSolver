@@ -3,16 +3,20 @@
 
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
-const JAN_1ST_2030 = 1893456000;
-const ONE_GWEI = 1_000_000_000n;
+module.exports = buildModule("VaultModule", (m) => {
+  // Get deployment parameters with placeholder defaults
+  const settlement = m.getParameter("settlement", "0x9008D19f58AAbD9eD0D60971565AA8510560ab41"); // CoW Protocol Settlement
+  const token0 = m.getParameter("token0", "0x0000000000000000000000000000000000000000");
+  const token1 = m.getParameter("token1", "0x0000000000000000000000000000000000000000");
+  const feeCollector = m.getParameter("feeCollector", "0x0000000000000000000000000000000000000000");
 
-module.exports = buildModule("LockModule", (m) => {
-  const unlockTime = m.getParameter("unlockTime", JAN_1ST_2030);
-  const lockedAmount = m.getParameter("lockedAmount", ONE_GWEI);
+  // Deploy Vault contract
+  const vault = m.contract("Vault", [
+    settlement,
+    token0,
+    token1,
+    feeCollector
+  ]);
 
-  const lock = m.contract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
-
-  return { lock };
+  return { vault };
 });
