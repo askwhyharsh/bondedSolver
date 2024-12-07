@@ -5,7 +5,7 @@ schema:
 dataSources:
   - kind: substreams
     name: vault_tracker
-    network: polygon-amoy
+    network: pinax-amoy
     source:
       package:
         moduleName: graph_out

@@ -21,7 +21,7 @@ modules:
   - name: map_events
     kind: map
     inputs:
-      - source: sf.ethereum.type.v2.Block
+      - source: amoy.substreams.pinax.network:443
     output:
       type: proto:example.Events
 
