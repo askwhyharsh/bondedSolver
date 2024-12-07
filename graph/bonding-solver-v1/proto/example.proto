@@ -2,13 +2,27 @@ syntax = "proto3";
 
 package example;
 
-message Contracts {
-  repeated Contract contracts = 1;
+message Events {
+    repeated Vault vaults = 1;
+    repeated Position positions = 2;
 }
 
-message Contract {
+message Vault {
     string address = 1;
-    uint64 blockNumber = 2;
-    string timestamp = 3;
-    uint64 ordinal = 4;
+    string token0 = 2;
+    string token1 = 3;
+    uint64 vault_id = 4;
+    uint64 block_number = 5;
+    string timestamp = 6;
+    string factory = 7;
+}
+
+message Position {
+    uint64 position_id = 1;
+    string owner = 2;
+    string amount0 = 3;
+    string amount1 = 4;
+    uint64 block_number = 5;
+    string timestamp = 6;
+    string vault = 7;
 }

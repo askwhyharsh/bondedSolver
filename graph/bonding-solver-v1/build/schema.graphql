@@ -1,0 +1,25 @@
+type Vault @entity {
+  id: ID!
+  address: String!
+  creator: String!
+  factory: VaultFactory!
+  timestamp: String!
+  blockNumber: BigInt!
+  token0: String!
+  token1: String!
+  totalAmount0: BigInt!
+  totalAmount1: BigInt!
+  totalFees0: BigInt!
+  totalFees1: BigInt!
+  totalPositions: BigInt!
+  totalLiquidity: BigInt!
+  totalVolume0: BigInt!
+  totalVolume1: BigInt!
+}
+
+type VaultFactory @entity {
+  id: ID!
+  address: String!
+  vaultsCreated: [Vault!]! @derivedFrom(field: "factory")
+  totalVaults: BigInt!
+}

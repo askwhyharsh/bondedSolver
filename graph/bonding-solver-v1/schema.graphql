@@ -1,9 +1,77 @@
-type Contract @entity {
+type Vault @entity {
   id: ID!
-
-  "The timestamp when the contract was deployed"
+  address: String!
+  token0: String!
+  token1: String!
+  vaultId: BigInt!
   timestamp: String!
-
-  "The block number of the contract deployment"
   blockNumber: BigInt!
+  factory: String!
 }
+
+type Position @entity {
+  id: ID!
+  positionId: BigInt!
+  owner: String!
+  amount0: String!
+  amount1: String!
+  timestamp: String!
+  blockNumber: BigInt!
+  vault: String!
+}
+# type Vault @entity {
+#   id: ID!
+#   address: String!
+#   token0: String!
+#   token1: String!
+#   vaultId: BigInt!
+#   timestamp: String!
+#   blockNumber: BigInt!
+#   factory: String!
+#   positions: [Position!]! @derivedFrom(field: "vault")
+#   swaps: [Swap!]! @derivedFrom(field: "vault")
+#   feeRate: BigInt!
+# }
+
+# type Position @entity {
+#   id: ID!
+#   positionId: BigInt!
+#   owner: String!
+#   amount0: BigInt!
+#   amount1: BigInt!
+#   timestamp: String!
+#   blockNumber: BigInt!
+#   vault: Vault!
+#   status: String! # "OPEN" or "CLOSED"
+#   feesCollected0: BigInt!
+#   feesCollected1: BigInt!
+# }
+
+# type Swap @entity {
+#   id: ID!
+#   user: String!
+#   vault: Vault!
+#   sellToken: String!
+#   buyToken: String!
+#   sellAmount: BigInt!
+#   buyAmount: BigInt!
+#   feeAmount: BigInt!
+#   timestamp: String!
+#   blockNumber: BigInt!
+# }
+
+# type FeeCollection @entity {
+#   id: ID!
+#   position: Position!
+#   amount0: BigInt!
+#   amount1: BigInt!
+#   timestamp: String!
+#   blockNumber: BigInt!
+# }
+
+# type VaultFactory @entity {
+#   id: ID!
+#   address: String!
+#   vaultsCreated: [Vault!]! @derivedFrom(field: "factory")
+#   totalVaults: BigInt!
+# }
