@@ -5,7 +5,38 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+interface GPv2Order {
+    struct Data {
+        IERC20 sellToken;
+        IERC20 buyToken;
+        address receiver;
+        uint256 sellAmount;
+        uint256 buyAmount;
+        uint32 validTo;
+        bytes32 appData;
+        uint256 feeAmount;
+        bytes32 kind;
+        bool partiallyFillable;
+        bytes32 sellTokenBalance;
+        bytes32 buyTokenBalance;
+    }
+}
 
+interface GPv2Trade {
+    struct Data {
+        GPv2Order.Data order;
+        bytes signature;
+        uint256 executedAmount;
+    }
+}
+
+interface GPv2Interaction {
+    struct Data {
+        address target;
+        uint256 value;
+        bytes callData;
+    }
+}
 /**
  * @title Vault2
  * @notice A vault contract that manages liquidity positions for token pairs
@@ -140,13 +171,33 @@ contract Vault2 is ERC721, Ownable, ReentrancyGuard {
         address sellToken,
         address buyToken,
         uint256 sellAmount,
-        uint256 minBuyAmount
+        uint256 minBuyAmount,
+        bytes memory signature
     ) external nonReentrant {
         require(
             (sellToken == token0 && buyToken == token1) ||
             (sellToken == token1 && buyToken == token0),
             "Invalid token pair"
         );
+
+        // Create and verify order
+        GPv2Order.Data memory order = GPv2Order.Data({
+            sellToken: IERC20(sellToken),
+            buyToken: IERC20(buyToken),
+            receiver: msg.sender,
+            sellAmount: sellAmount,
+            buyAmount: minBuyAmount,
+            validTo: uint32(block.timestamp + 1 hours), // Example validity period
+            appData: bytes32(0),
+            feeAmount: 0,
+            kind: bytes32(0),
+            partiallyFillable: false,
+            sellTokenBalance: bytes32(0),
+            buyTokenBalance: bytes32(0)
+        });
+        // verify signature
+        require(verifySignature(order, signature), "Invalid signature");
+
         
         uint256 feeAmount = (sellAmount * swapFeeRate) / FEE_DENOMINATOR;
         uint256 netSellAmount = sellAmount - feeAmount;
@@ -175,6 +226,59 @@ contract Vault2 is ERC721, Ownable, ReentrancyGuard {
         
         emit SwapExecuted(msg.sender, sellToken, buyToken, sellAmount, buyAmount, feeAmount);
     }
+
+       function verifySignature(GPv2Order.Data memory order, bytes memory signature) internal view returns (bool) {
+        // Hash the order data
+        bytes32 orderHash = keccak256(abi.encode(
+            order.sellToken,
+            order.buyToken,
+            order.receiver,
+            order.sellAmount,
+            order.buyAmount,
+            order.validTo,
+            order.appData,
+            order.feeAmount,
+            order.kind,
+            order.partiallyFillable,
+            order.sellTokenBalance,
+            order.buyTokenBalance
+        ));
+
+        // Hash the message according to EIP-712
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            "\x19Ethereum Signed Message:\n32",
+            orderHash
+        ));
+
+        // Recover the signer
+        address signer = recoverSigner(messageHash, signature);
+
+        // Verify the signer is the sender
+        return signer == msg.sender;
+    }
+
+       function recoverSigner(bytes32 messageHash, bytes memory signature) internal pure returns (address) {
+        require(signature.length == 65, "Invalid signature length");
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+
+        if (v < 27) {
+            v += 27;
+        }
+
+        require(v == 27 || v == 28, "Invalid signature v value");
+
+        return ecrecover(messageHash, v, r, s);
+    }
+
 
     /**
      * @notice Calculate buy amount based on constant product formula
@@ -317,9 +421,6 @@ contract Vault2 is ERC721, Ownable, ReentrancyGuard {
         );
     }
 
-    /**
-     * @notice Get the total number of positions
-     */
     function _isApprovedOrOwner(address user, uint256 positionId) internal view returns (bool) {
         return user == owner() || isApprovedForAll(owner(), user) || getApproved(positionId) == user;
     }
